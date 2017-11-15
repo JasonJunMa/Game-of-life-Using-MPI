@@ -1,9 +1,13 @@
 # Game-of-life-Using-MPI
-## Test Folder
-### How to run
+## test Folder
+    Help you understand basic MPI function.
+    Make sure that you have mpich installed on your computer.
+    Type "make" in your console, then type "make run" to run the code.
 
-Make sure that you have mpich installed on your computer
+## src Folder
+    Main folder for the project
 
-type "make" in your console, then type "make run" to run the code
+## Reference
+[MPI Commands](http://www.mpich.org/static/docs/latest/www/)
 
 
