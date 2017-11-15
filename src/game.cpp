@@ -43,6 +43,38 @@ int main(int argc, char *argv[])
 
     if (rank == 0)
     {
+        //slice the board here
+    }
+
+    /**
+     * Count how many neighbors of a cell
+     * Need to apply to each slice
+     * 000
+     * 010
+     * 101
+     */
+    for (int x = 1; x < columns - 1; x++)
+    {
+        for (int y = 1; y < rows - 1; y++)
+        {
+
+            int neighbors = 0;
+            for (int i = -1; i <= 1; i++)
+            {
+                for (int j = -1; j <= 1; j++)
+                {
+                    neighbors += board[x + i][y + j].previousState;
+                }
+            }
+            neighbors -= board[x][y].previousState;
+
+            if ((board[x][y].state == 1) && (neighbors < 2))
+                board[x][y].newState(0);
+            else if ((board[x][y].state == 1) && (neighbors > 3))
+                board[x][y].newState(0);
+            else if ((board[x][y].state == 0) && (neighbors == 3))
+                board[x][y].newState(1);
+        }
     }
 
     // Finish the MPI
