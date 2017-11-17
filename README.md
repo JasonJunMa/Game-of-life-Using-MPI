@@ -6,6 +6,7 @@
 
 ## src Folder
     Main folder for the project(java)
+    Download the src, and load it into the Eclipse
 
 ## CCode Folder
     Implements using C++
