@@ -1,12 +1,15 @@
 #include <iostream>
 #include "mpi.h"
 #include "cell.h"
+#include <OpenGL/gl.h>
+
 using namespace std;
 
 #define sizeOfBoard 1000
 
 int main(int argc, char *argv[])
 {
+
     /**
      * Initilized a board
      * Set random state for each cell

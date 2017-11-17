@@ -5,7 +5,10 @@
     Type "make" in your console, then type "make run" to run the code.
 
 ## src Folder
-    Main folder for the project
+    Main folder for the project(java)
+
+## CCode Folder
+    Implements using C++
 
 ## Reference
 [MPI Commands](http://www.mpich.org/static/docs/latest/www/)
