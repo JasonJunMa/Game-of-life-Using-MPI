@@ -15,7 +15,11 @@
     Implements using open-mpi in java.
 
 ## Reference
-[MPI Commands](http://www.mpich.org/static/docs/latest/www/)
-[Open-MPI](https://www.open-mpi.org/doc/current/)
+[MPI Commands](http://www.mpich.org/static/docs/latest/www/)<br>
+[Open-MPI](https://www.open-mpi.org/doc/current/)<br>
+[MPI-life](https://github.com/freetonik/MPI-life)<br>
+[MPI-Tutotials](http://mpitutorial.com/tutorials/)<br>
+[Nature of the code](http://natureofcode.com/book/chapter-7-cellular-automata/)<br>
+[Draw panel using java](http://zetcode.com/gfx/java2d/basicdrawing/)<br>
 
 
