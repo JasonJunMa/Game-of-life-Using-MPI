@@ -11,21 +11,20 @@ import java.util.Random;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import message.Message;
-import message.MessageHandler;
-import message.MessageListener;
-import message.MessageProducer;
+import message.*;
 import mpi.*;
-
 
 public class Game extends JFrame implements MessageProducer {
 	public Cell board[][] ; 
 	private MessageHandler messageHandler;    // delegate to handle messages
 	public int boardSize;
 	
-	public Game(int x, int y) {
+	public Game(int x) {
 		boardSize = x;
-		board = new Cell[x][y];
+	}
+	
+	public void init() {
+		board = new Cell[boardSize][boardSize];
 		this.messageHandler = new MessageHandler();
 		this.initBoard();
 		this.initUI();
@@ -34,9 +33,9 @@ public class Game extends JFrame implements MessageProducer {
 	public void initBoard() {
 	    Random rnd = new Random();
 	    rnd.setSeed(System.currentTimeMillis());
-	    for (int i = 0; i < 1000; i++)
+	    for (int i = 0; i < boardSize; i++)
 	    {
-	        for (int j = 0; j < 1000; j++)
+	        for (int j = 0; j < boardSize; j++)
 	        {
 	        		board[i][j] = new Cell();
 	        		board[i][j].setX(i);
@@ -51,60 +50,60 @@ public class Game extends JFrame implements MessageProducer {
 	protected void initUI() {
 
 		JFrame f = new JFrame("The Game of life");
-		final Surface surface = new Surface(this);
+		final Surface surface = new Surface(this,boardSize);
 		addMessageListener(surface);
 		
 		f.add(surface);		
-		f.setSize(1000, 1000);
+		f.setSize(boardSize, boardSize);
 		f.setLocationRelativeTo(null);
 		f.setVisible(true);		
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
-	public void start(String []args) {
+	public void start(String []args) throws MPIException {
 		
 		MPI.Init(args);
-		int size, rank, sliceNum;
-		rank = MPI.COMM_WORLD.getRank() ;
-		size = MPI.COMM_WORLD.getSize() ;
+		int generations=1000;
+		int rank = MPI.COMM_WORLD.Rank() ;
+		int size = MPI.COMM_WORLD.Size() ;
+		int sliceNum = boardSize / size;
+		int tag = 10;
+		int myslice[][] = new int[sliceNum][boardSize];
+		
 		if(rank == 0) {
-			
-			//slice into rectangle
-			sliceNum = boardSize / size;
-			
-			int info[] = new int [2];
-			info[0]=boardSize; info[1]=sliceNum;
-			for (int dest=0; dest<size; dest++) 
-				MPI.COMM_WORLD.send(info, 2, MPI.INT, dest, 1); //send info
+			init();
+			for (int k=0; k<sliceNum; k++) 
+				for (int l=0; l<boardSize; l++) 
+					myslice[k][l] = board[k][l].getPrevious();
 			int slice[][] = new int [sliceNum][boardSize];	
-			for (int z=0; z<size; z++)
+			Object []sendObjectArray = new Object[1];
+			for (int z=1; z<size; z++)
 			{
 				for (int k=0; k<sliceNum; k++) 
 					for (int l=0; l<boardSize; l++) 
 						slice[k][l]=board[k+(z*sliceNum)][l].getPrevious();	//cut a slice from the the board
-				MPI.COMM_WORLD.send(slice, boardSize*sliceNum, MPI.INT, z, 1);	//and send it
+				sendObjectArray[0] = (Object) slice;
+				MPI.COMM_WORLD.Send(sendObjectArray, 0,1, MPI.OBJECT, z, tag);	//and send it
 			}
+		}else {
+			Object receivedArray[] = new Object[1];
+			MPI.COMM_WORLD.Recv(receivedArray, 0, 1, MPI.OBJECT, 0, tag);	//receive slice
+			myslice = (int[][])receivedArray[0];
 		}
-		
-		int localinfo[] = new int[2];
-		MPI.COMM_WORLD.recv(localinfo, 2, MPI.INT, 0, 1);	//receive info
-		int myslice[][] = new int[localinfo[0]][localinfo[1]]; //my own slice of the board
-		MPI.COMM_WORLD.recv(myslice, localinfo[0]*localinfo[1], MPI.INT, 0, 1);	//receive slice
-		boardSize = localinfo[0];
-		sliceNum = localinfo[1];
-		
+	
 		int todown[] = new int[boardSize];	
 		int toup[] = new int[boardSize];
 		int fromdown[] = new int[boardSize];
 		int fromup[] =new int[boardSize]; //arrays to send and to receive
+		int g =0;
 		
-		while(true)
+		while(g<generations)
 		{
 			if (rank!=size-1) // all except for last send down
 			{
 				for (int j=0; j<boardSize; j++) 
 					todown[j]=myslice[sliceNum-1][j];
-				MPI.COMM_WORLD.send(todown, boardSize, MPI.INT, rank+1, 1);
+				MPI.COMM_WORLD.Send(todown, 0,boardSize, MPI.INT, rank+1, tag);
 
 			} else {
 				for (int k=0; k<boardSize; k++) 
@@ -113,7 +112,7 @@ public class Game extends JFrame implements MessageProducer {
 
 			if (rank!=0) // all except for first receive from up
 			{
-				MPI.COMM_WORLD.recv(fromup, boardSize, MPI.INT, rank-1, 1);	
+				MPI.COMM_WORLD.Recv(fromup,0, boardSize, MPI.INT, rank-1, tag);	
 
 			} else { 
 				for (int k=0; k<boardSize; k++) 
@@ -124,12 +123,12 @@ public class Game extends JFrame implements MessageProducer {
 			{
 				for (int j=0; j<boardSize; j++) 
 					toup[j]=myslice[0][j];
-				MPI.COMM_WORLD.send(toup, boardSize, MPI.INT, rank-1, 1);
+				MPI.COMM_WORLD.Send(toup, 0,boardSize, MPI.INT, rank-1, tag);
 			}
 		
 			if (rank!=size-1) // all except for last receive from down
 			{
-				MPI.COMM_WORLD.recv(fromdown, boardSize, MPI.INT, rank+1, 1);
+				MPI.COMM_WORLD.Recv(fromdown,0, boardSize, MPI.INT, rank+1, tag);
 			}
 			
 			int sum=0; // sum of neighbours
@@ -188,7 +187,7 @@ public class Game extends JFrame implements MessageProducer {
 				}
 				for (int i=1; i<size; i++)
 				{
-					MPI.COMM_WORLD.recv(aBoard, boardSize*sliceNum, MPI.INT, i, 1); //receive all others'
+					MPI.COMM_WORLD.Recv(aBoard,0, sliceNum, MPI.OBJECT, i, tag); //receive all others'
 					for (int x=0; x<sliceNum; x++)
 					{
 						for (int y=0; y<boardSize; y++) {
@@ -198,20 +197,23 @@ public class Game extends JFrame implements MessageProducer {
 				}
 			}
 			else {
-				MPI.COMM_WORLD.send(myslice, boardSize*sliceNum, MPI.INT, 0,1);
+				MPI.COMM_WORLD.Send(myslice,0, sliceNum, MPI.OBJECT, 0,tag);
 			}
-		
+			
+			if(rank == 0) {
 		    //Save the state as previous state
-		    for (int x = 1; x < 1000 - 1; x++)
-		    {
-		        for (int y = 1; y < 1000 - 1; y++)
-		        { 	
-		        		board[x][y].savePrevious();
-		        }
-		    }
-		    
-		    sendMessage(new Message(1));
+			    for (int x = 1; x < boardSize - 1; x++)
+			    {
+			        for (int y = 1; y < boardSize - 1; y++)
+			        { 	
+			        		board[x][y].savePrevious();
+			        }
+			    }
+		    		sendMessage(new Message(1));
+			}
+		    g = g+1;
 	    }
+		
 		MPI.Finalize();
 	}
 	
@@ -232,10 +234,4 @@ public class Game extends JFrame implements MessageProducer {
 		// TODO Auto-generated method stub
 		messageHandler.sendMessage(message);
 	}
-	
-	
-    public static void main(String[] args)  {
-		Game gm = new Game(1000,1000);
-		gm.start(args);
-    }
 }

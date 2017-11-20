@@ -15,9 +15,11 @@ class Surface extends JPanel implements MessageListener,ActionListener {
     private int signal;
 	protected Game gm; 
 	private Graphics wnd;
+	private int boardSize;
 	
-    public Surface(Game game) {
+    public Surface(Game game,int size) {
     		this.gm = game;
+    		this.boardSize = size;
     }
 
     private void doDrawing(Graphics g) {
@@ -30,8 +32,8 @@ class Surface extends JPanel implements MessageListener,ActionListener {
         int h = getHeight();
         //g2d.scale(w, h);
 
-        for (int i = 0; i < 1000; i++) {
-        		for(int j = 0;j<1000;j++) {
+        for (int i = 0; i < boardSize; i++) {
+        		for(int j = 0;j<boardSize;j++) {
         			if( gm.board[i][j].getState()== 1) {
 		            int x = i % w;
 		            int y = j % h;

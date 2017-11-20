@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+/.metadata/
+
+*.class
+.classpath
+.project
+/.recommenders/
+/.vscode
+

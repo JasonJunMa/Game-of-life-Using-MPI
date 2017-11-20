@@ -12,7 +12,15 @@
 
 ## mpi Folder
     MPI version of the game
-    Implements using open-mpi in java.
+    Implements using MPJ in java.
+    Add MPJ_HOME to your system enviroment:
+        export MPJ_HOME=path/to/mpj/folder
+    Add MPJ_HOME to project enviroment:
+        Run configurations->java application->your app->enviroment
+    Add vm argument in eclipse:
+        -jar ${MPJ_HOME}/lib/starter.jar -np 4
+    debug:
+        -jar ${MPJ_HOME}/lib/starter.jar -np 4 -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000
 
 ## Reference
 [MPI Commands](http://www.mpich.org/static/docs/latest/www/)<br>
@@ -21,5 +29,6 @@
 [MPI-Tutotials](http://mpitutorial.com/tutorials/)<br>
 [Nature of the code](http://natureofcode.com/book/chapter-7-cellular-automata/)<br>
 [Draw panel using java](http://zetcode.com/gfx/java2d/basicdrawing/)<br>
+[MPJ](http://mpj-express.org/docs/javadocs/index.html)
 
 
