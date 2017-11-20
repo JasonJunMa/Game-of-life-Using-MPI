@@ -1,10 +1,5 @@
 # Game-of-life-Using-MPI
-    Install open-mpi in your computer
-## test Folder
-    Using C++
-    Help you understand basic MPI function.
-    Type "make" in your console, then type "make run" to run the code.
-
+    Install open-mpi or mpich in your computer
 ## single Folder
     Main folder for the project(java)
     It can run the game on a single computer
