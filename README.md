@@ -1,7 +1,9 @@
 # Game-of-life-Using-MPI
     Install open-mpi or mpich in your computer
+
+##C++ Folder
+    Implements in C++.
 ## single Folder
-    Main folder for the project(java)
     It can run the game on a single computer
     Download the src, and load it into the Eclipse
 
@@ -9,12 +11,10 @@
     MPI version of the game
     Implements using MPJ in java.
 
-
     Add mpj.jar to your java build path
         Open the Properties of your project.
-        In tab Java build path->Libraries.
-        Add external Jars.
-        It's under the mpj-v0_44/lib folder
+        In tab Java build path->Libraries->Add external Jars.
+        The mpj.jar is under the mpj-v0_44/lib folder.
     Add MPJ_HOME to your system enviroment:
         export MPJ_HOME=path/to/mpj/folder
     Add MPJ_HOME to project enviroment:
@@ -26,7 +26,7 @@
     debug:
         -jar ${MPJ_HOME}/lib/starter.jar -np 4 -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000
 
-
+    Under mpj-v0_44/doc folder, you can find the instructions about how to use the mpj.
 
 ## Reference
 [MPI Commands](http://www.mpich.org/static/docs/latest/www/)<br>
