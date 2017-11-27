@@ -37,7 +37,7 @@ public class Game extends JFrame implements MessageProducer {
 
 	protected void initUI() {
 		JFrame f = new JFrame("The Game of life");
-		final Surface surface = new Surface(this, boardSize);
+		final Surface surface = new Surface(this);
 		addMessageListener(surface);
 		f.add(surface);
 		f.setSize(boardSize, boardSize);
@@ -80,72 +80,61 @@ public class Game extends JFrame implements MessageProducer {
 		int toup[] = new int[boardSize];
 		int fromdown[] = new int[boardSize];
 		int fromup[] = new int[boardSize]; // arrays to send and to receive
+		int toDownRank, toUpRank;
+		int fromDownRank, fromUpRank;
 		int g = 0;
 
 		while (g < generations) {
-			if (rank != size - 1) // all except for last send down
-			{
-				for (int j = 0; j < boardSize; j++)
-					todown[j] = myslice[sliceNum - 1][j];
-				MPI.COMM_WORLD.Send(todown, 0, boardSize, MPI.INT, rank + 1, tag);
+			toDownRank = (rank != size - 1) ? rank + 1 : 0;
+			for (int j = 0; j < boardSize; j++)
+				todown[j] = myslice[sliceNum - 1][j];
+			MPI.COMM_WORLD.Isend(todown, 0, boardSize, MPI.INT, toDownRank, tag);
 
-			} else {
-				for (int k = 0; k < boardSize; k++)
-					fromdown[k] = 0;
-			} // last one generates empty stripe "from down"
+			fromUpRank = (rank != 0) ? rank - 1 : size - 1;
+			MPI.COMM_WORLD.Irecv(fromup, 0, boardSize, MPI.INT, fromUpRank, tag);
 
-			if (rank != 0) // all except for first receive from up
-			{
-				MPI.COMM_WORLD.Recv(fromup, 0, boardSize, MPI.INT, rank - 1, tag);
+			toUpRank = (rank != 0) ? rank - 1 : size - 1;
+			for (int j = 0; j < boardSize; j++)
+				toup[j] = myslice[0][j];
+			MPI.COMM_WORLD.Isend(toup, 0, boardSize, MPI.INT, toUpRank, tag);
 
-			} else {
-				for (int k = 0; k < boardSize; k++)
-					fromup[k] = 0;
-			} // first one generats empty line "from up"
-
-			if (rank != 0) // all except for first send up
-			{
-				for (int j = 0; j < boardSize; j++)
-					toup[j] = myslice[0][j];
-				MPI.COMM_WORLD.Send(toup, 0, boardSize, MPI.INT, rank - 1, tag);
-			}
-
-			if (rank != size - 1) // all except for last receive from down
-			{
-				MPI.COMM_WORLD.Recv(fromdown, 0, boardSize, MPI.INT, rank + 1, tag);
-			}
-
+			fromDownRank = (rank != size - 1) ? rank + 1 : 0;
+			MPI.COMM_WORLD.Irecv(fromdown, 0, boardSize, MPI.INT, fromDownRank, tag);
 			int sum = 0; // sum of neighbours
 			int mynewslice[][] = new int[sliceNum][boardSize];
 			for (int x = 0; x < sliceNum; x++) // for each row
 			{
 				for (int y = 0; y < boardSize; y++) // for each column
 				{
-					if (x == 0 && y == 0) // upper-left cell
-						sum = myslice[x + 1][y] + myslice[x + 1][y + 1] + myslice[0][y + 1] + fromup[0] + fromup[1];
-					else if (x == 0 && y == boardSize - 1) // upper-right cell
-						sum = myslice[x][y - 1] + myslice[x + 1][y - 1] + myslice[x + 1][y] + fromup[boardSize - 1]
-								+ fromup[boardSize - 2];
-					else if (x == sliceNum - 1 && y == 0) // lower-left cell
-						sum = myslice[x][y + 1] + myslice[x - 1][y + 1] + myslice[x - 1][y] + fromdown[0] + fromdown[1];
-					else if (x == sliceNum - 1 && y == boardSize - 1) // lower-right cell
-						sum = myslice[x - 1][y] + myslice[x - 1][y - 1] + myslice[x][y - 1] + fromdown[boardSize - 1]
-								+ fromdown[boardSize - 2];
+					if (x == 0 && y == 0) //upper-left cell
+						sum = myslice[x + 1][y] + myslice[x + 1][y + 1] + myslice[0][y + 1] + myslice[0][boardSize - 1]
+								+ myslice[1][boardSize - 1] + fromup[0] + fromup[1] + fromup[boardSize - 1];
+					else if (x == 0 && y == boardSize - 1) //upper-right cell
+						sum = myslice[x][y - 1] + myslice[x + 1][y - 1] + myslice[x + 1][y] + myslice[x + 1][0]
+								+ myslice[x][0] + fromup[boardSize - 1] + fromup[boardSize - 2] + fromup[0];
+					else if (x == sliceNum - 1 && y == 0) //lower-left cell
+						sum = myslice[x][y + 1] + myslice[x - 1][y + 1] + myslice[x - 1][y]
+								+ myslice[x - 1][boardSize - 1] + myslice[x][boardSize - 1] + fromdown[boardSize - 1]
+								+ fromdown[0] + fromdown[1];
+					else if (x == sliceNum - 1 && y == boardSize - 1) //lower-right cell
+						sum = myslice[x][0] + myslice[x - 1][0] + myslice[x - 1][y] + myslice[x - 1][y - 1]
+								+ myslice[x][y - 1] + fromdown[boardSize - 2] + fromdown[boardSize - 1] + fromdown[0];
 					else // not corner cells
 					{
 						if (y == 0) // leftmost line, not corner
-							sum = myslice[x - 1][y] + myslice[x - 1][y + 1] + myslice[x][y + 1] + myslice[x + 1][y + 1]
-									+ myslice[x + 1][y];
-						else if (y == boardSize - 1) // rightmost line, not corner
-							sum = myslice[x - 1][y] + myslice[x - 1][y - 1] + myslice[x][y - 1] + myslice[x + 1][y - 1]
-									+ myslice[x + 1][y];
-						else if (x == 0) // uppermost line, not corner
-							sum = myslice[x][y - 1] + myslice[x + 1][y - 1] + myslice[x + 1][y] + myslice[x + 1][y + 1]
-									+ myslice[x][y + 1] + fromup[y - 1] + fromup[y] + fromup[y + 1];
-						else if (x == sliceNum - 1) // lowermost line, not corner
-							sum = myslice[x - 1][y - 1] + myslice[x - 1][y] + myslice[x - 1][y + 1] + myslice[x][y + 1]
+							sum = myslice[x + 1][y] + myslice[x - 1][y + 1] + myslice[x - 1][y]
+									+ myslice[x - 1][boardSize - 1] + myslice[x][boardSize - 1]
+									+ myslice[x + 1][boardSize - 1] + myslice[x][y + 1] + myslice[x + 1][y + 1];
+						else if (y == boardSize - 1) //rightmost line, not corner
+							sum = myslice[x][0] + myslice[x - 1][0] + myslice[x - 1][y] + myslice[x - 1][y - 1]
+									+ myslice[x][y - 1] + myslice[x + 1][y - 1] + myslice[x + 1][y] + myslice[x + 1][0];
+						else if (x == 0) //uppermost line, not corner
+							sum = myslice[x][y + 1] + fromup[y + 1] + fromup[y] + fromup[y - 1] + myslice[x][y - 1]
+									+ myslice[x + 1][y - 1] + myslice[x + 1][y] + myslice[x + 1][y + 1];
+						else if (x == sliceNum - 1) //lowermost line, not corner
+							sum = myslice[x][y + 1] + myslice[x - 1][y + 1] + myslice[x - 1][y] + myslice[x - 1][y - 1]
 									+ myslice[x][y - 1] + fromdown[y - 1] + fromdown[y] + fromdown[y + 1];
-						else // general case, any cell within
+						else //general case, any cell within
 							sum = myslice[x - 1][y - 1] + myslice[x - 1][y] + myslice[x - 1][y + 1] + myslice[x][y + 1]
 									+ myslice[x + 1][y + 1] + myslice[x + 1][y] + myslice[x + 1][y - 1]
 									+ myslice[x][y - 1];

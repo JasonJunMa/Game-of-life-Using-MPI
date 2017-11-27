@@ -11,58 +11,56 @@ import javax.swing.JPanel;
 import message.Message;
 import message.MessageListener;
 
-class Surface extends JPanel implements MessageListener,ActionListener {
-    private int signal;
-	protected Game gm; 
+class Surface extends JPanel implements MessageListener, ActionListener {
+	private int signal;
+	protected Game gm;
 	private Graphics wnd;
 	private int boardSize;
-	
-    public Surface(Game game,int size) {
-    		this.gm = game;
-    		this.boardSize = size;
-    }
 
-    private void doDrawing(Graphics g) {
+	public Surface(Game game) {
+		this.gm = game;
+		this.boardSize = game.boardSize;
+	}
 
-        Graphics2D g2d = (Graphics2D) g;
-        
-        g2d.setPaint(Color.blue);
+	private void doDrawing(Graphics g) {
 
-        int w = getWidth();
-        int h = getHeight();
-        //g2d.scale(w, h);
+		Graphics2D g2d = (Graphics2D) g;
 
-        for (int i = 0; i < boardSize; i++) {
-        		for(int j = 0;j<boardSize;j++) {
-        			if( gm.board[i][j].getState()== 1) {
-		            int x = i % w;
-		            int y = j % h;
-		            g2d.setColor(Color.BLUE);
-		            g2d.fillRect(i, j, 1, 1);
-        			}		
-        		}
-        }
-    }
+		g2d.setPaint(Color.blue);
 
-    @Override
-    public void paintComponent(Graphics g) {
-    		wnd = g;
-        super.paintComponent(g);
-        doDrawing(g);
-    }
+		int w = getWidth();
+		int h = getHeight();
+		// g2d.scale(w, h);
 
-    public void messageReceived(Message message)
-    {
-    		signal =	message.getSignal();
-        switch (signal) {
+		for (int i = 0; i < boardSize; i++) {
+			for (int j = 0; j < boardSize; j++) {
+				if (gm.board[i][j].getState() == 1) {
+					int x = i % w;
+					int y = j % h;
+					g2d.setColor(Color.BLUE);
+					g2d.fillRect(i, j, 1, 1);
+				}
+			}
+		}
+	}
 
-            case 1: {
-            	//this.revalidate();
-            	this.repaint();
-                break;
-            }
-        }
-    }
+	@Override
+	public void paintComponent(Graphics g) {
+		wnd = g;
+		super.paintComponent(g);
+		doDrawing(g);
+	}
+
+	public void messageReceived(Message message) {
+		signal = message.getSignal();
+		switch (signal) {
+		case 1: {
+			// this.revalidate();
+			this.repaint();
+			break;
+		}
+		}
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
