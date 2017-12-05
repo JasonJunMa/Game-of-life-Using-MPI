@@ -19,6 +19,7 @@
         Refresh the project in eclipse.
         Now you should see the source file in the project.
         Keep the mpj-v0_44 folder anywhere in your computer.
+        Your project should have two referenced libraies.
     3.
         Add mpj.jar to your java build path
         Open the Properties of your project.
