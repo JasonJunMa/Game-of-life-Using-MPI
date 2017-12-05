@@ -189,9 +189,15 @@ public class Game extends JFrame implements MessageProducer {
 						board[x][y].savePrevious();
 					}
 				}
+				try {
+                    Thread.sleep(50);
+                  } catch (InterruptedException e) {
+                    e.printStackTrace();
+                  }
 				sendMessage(new Message(1));
 			}
 			g = g + 1;
+			MPI.COMM_WORLD.Barrier();
 		}
 
 		MPI.Finalize();
@@ -199,19 +205,16 @@ public class Game extends JFrame implements MessageProducer {
 
 	@Override
 	public void addMessageListener(MessageListener listener) {
-		// TODO Auto-generated method stub
 		messageHandler.addListener(listener);
 	}
 
 	@Override
 	public void removeMessageListener(MessageListener listener) {
-		// TODO Auto-generated method stub
 		messageHandler.removeListener(listener);
 	}
 
 	@Override
 	public void sendMessage(Message message) {
-		// TODO Auto-generated method stub
 		messageHandler.sendMessage(message);
 	}
 }
