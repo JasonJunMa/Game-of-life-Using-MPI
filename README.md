@@ -1,6 +1,11 @@
 # Game-of-life-Using-MPI
     Install open-mpi or mpich in your computer
 
+##python version
+    gof.py file
+    use pip install mpi4py
+    mpirun -np 4 python gof.py
+
 ## single Folder
     It can run the game on a single computer
     Download the src, and load it into the Eclipse
