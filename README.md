@@ -1,7 +1,7 @@
 # Game-of-life-Using-MPI
     Install open-mpi or mpich in your computer
 
-##python version
+## python version
     gof.py file
     use pip install mpi4py
     mpirun -np 4 python gof.py
